@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">StockScreener</string>
+    <string name="title_activity_stock_list_screen">StockListScreen</string>
+
+    <!-- Screen  -->
+    <string name="stock_list">Stock List</string>
+    <string name="search">Search</string>
+
+</resources>
