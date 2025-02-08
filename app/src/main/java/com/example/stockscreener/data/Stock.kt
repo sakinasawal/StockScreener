@@ -10,5 +10,6 @@ data class Stock(
     val exchange: String,
     val assetType: String,
     val ipoDate: String,
-    val status: String
+    val status: String,
+    val isFavorite: Boolean = false
 )

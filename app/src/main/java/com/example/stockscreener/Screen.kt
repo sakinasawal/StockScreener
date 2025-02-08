@@ -5,10 +5,12 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import com.example.stockscreener.stock.FavouriteListStockScreen
 import com.example.stockscreener.stock.StockListScreen
 
 sealed class Screen(val route: String, val content: @Composable (NavController, Bundle?) -> Unit) {
     data object StockList : Screen("StockList", { navController, _ -> StockListScreen(navController = navController) })
+    data object Favorites : Screen("Favorites", { _, _ -> FavouriteListStockScreen() })
 
 }
 

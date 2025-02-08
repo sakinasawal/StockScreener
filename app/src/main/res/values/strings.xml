@@ -4,6 +4,7 @@
 
     <!-- Screen  -->
     <string name="stock_list">Stock List</string>
+    <string name="watch_list">Watch List</string>
     <string name="search">Search</string>
 
 </resources>

@@ -14,4 +14,11 @@ interface StockDao {
 
     @Query("SELECT * FROM stocks")
     fun getStocks(): Flow<List<Stock>>
+
+    @Query("SELECT * FROM stocks WHERE symbol LIKE '%' || :keyword || '%'")
+    fun searchStocks(keyword: String): Flow<List<Stock>>
+
+    @Query("UPDATE stocks SET isFavorite = :isFavorite WHERE symbol = :symbol")
+    suspend fun updateFavorite(symbol: String, isFavorite: Boolean)
+
 }
