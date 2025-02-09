@@ -3,19 +3,18 @@ package com.example.stockscreener.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.stockscreener.data.CompanyOverviewEntity
 import com.example.stockscreener.data.Stock
 import com.example.stockscreener.network.Repository
 import com.example.stockscreener.storage.StockDatabase
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
 class StockViewModel(application: Application) : AndroidViewModel(application) {
-    private val stockDao = StockDatabase.getDatabase(application).stockDao()
-    private val repository = Repository(stockDao)
+    private val database = StockDatabase.getDatabase(application)
+    private val repository = Repository(database.stockDao(), database.companyOverviewDao())
 
     private val listStocks = MutableStateFlow<List<Stock>>(emptyList())
     val stocks: StateFlow<List<Stock>> get() = listStocks
@@ -25,6 +24,9 @@ class StockViewModel(application: Application) : AndroidViewModel(application) {
 
     private val isSearchStock = MutableStateFlow(false)
     val isSearching: StateFlow<Boolean> = isSearchStock
+
+    private val companyOverviewData = MutableStateFlow<CompanyOverviewEntity?>(null)
+    val companyOverview: StateFlow<CompanyOverviewEntity?> = companyOverviewData
 
     init {
         viewModelScope.launch{
@@ -64,6 +66,19 @@ class StockViewModel(application: Application) : AndroidViewModel(application) {
 
             listStocks.value = listStocks.value.map {
                 if (it.symbol == stock.symbol) it.copy(isFavorite = newFavoriteStatus) else it
+            }
+        }
+    }
+
+    fun getCompanyOverview(symbol: String) {
+        viewModelScope.launch {
+            val apiResponse = repository.getCompanyOverview(symbol)
+            if ( apiResponse != null){
+                companyOverviewData.value = apiResponse
+            } else {
+                repository.getCompanyOverviewFromDB(symbol).collect {
+                    companyOverviewData.value = it
+                }
             }
         }
     }

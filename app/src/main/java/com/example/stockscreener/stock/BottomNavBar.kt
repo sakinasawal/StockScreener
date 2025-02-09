@@ -20,7 +20,7 @@ import com.example.stockscreener.R
 
 @Composable
 fun BottomNavBar(navController: NavController? = null) {
-    val items = listOf(Screen.StockList, Screen.Favorites)
+    val items = listOf(Screen.StockList, Screen.WatchList)
     val currentDestination = navController?.currentBackStackEntryAsState()?.value?.destination?.route
 
     NavigationBar {
@@ -37,7 +37,7 @@ fun BottomNavBar(navController: NavController? = null) {
                 label = { Text(
                     text =
                     stringResource(
-                        id = if(screen == Screen.Favorites) R.string.watch_list else R.string.stock_list),
+                        id = if(screen == Screen.WatchList) R.string.watch_list else R.string.stock_list),
                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                 ) },
                 selected = isSelected,

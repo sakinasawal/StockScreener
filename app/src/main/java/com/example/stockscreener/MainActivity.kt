@@ -41,7 +41,8 @@ fun MainApplication() {
             modifier = Modifier.padding(paddingValues))
         {
             composable(navController, Screen.StockList)
-            composable(navController, Screen.Favorites)
+            composable(navController, Screen.WatchList)
+            composable(navController, Screen.CompanyDetail)
         }
     }
 }

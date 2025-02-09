@@ -86,20 +86,27 @@ fun StockListScreen(navController: NavController? = null) {
         LazyColumn {
             val displaySearchStock = if (isSearching) searchStocksResults else stocks
             items(displaySearchStock) { stock ->
-                StockItem(stock) { selectedStock ->
-                    viewModel.toggleFavorite(selectedStock)
-                }
+                StockItem(
+                    stock = stock,
+                    onFavoriteClick = { selectedStock ->
+                        viewModel.toggleFavorite(selectedStock)
+                    },
+                    onClick = {
+                        navController?.navigate("CompanyOverview/${stock.symbol}")
+                    }
+                )
             }
         }
     }
 }
 
 @Composable
-fun StockItem(stock: Stock, onFavoriteClick: (Stock) -> Unit) {
+fun StockItem(stock: Stock, onFavoriteClick: (Stock) -> Unit, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(spacing_8),
+            .padding(spacing_8)
+            .clickable { onClick() },
         elevation = CardDefaults.cardElevation(spacing_4)
     ) {
         Row(
@@ -119,13 +126,12 @@ fun StockItem(stock: Stock, onFavoriteClick: (Stock) -> Unit) {
                 onClick = { onFavoriteClick(stock) }
             ){
                 Icon(imageVector = if (stock.isFavorite) Icons.Filled.Star else Icons.Outlined.Star,
-                    contentDescription = "Favorite",
+                    contentDescription = "Watch List",
                     tint = if (stock.isFavorite) Purple40 else Color.LightGray)
             }
         }
     }
 }
-
 
 @Preview
 @Composable

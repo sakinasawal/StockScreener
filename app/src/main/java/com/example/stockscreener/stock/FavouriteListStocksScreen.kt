@@ -15,13 +15,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavController
 import com.example.stockscreener.R
 import com.example.stockscreener.TextLabel
 import com.example.stockscreener.spacing_20
 import com.example.stockscreener.ui.theme.AppTypography
 
 @Composable
-fun FavouriteListStockScreen(){
+fun FavouriteListStockScreen(navController: NavController? = null){
     val viewModel: StockViewModel = viewModel()
     val stocks by viewModel.stocks.collectAsState()
     val favoriteStocks = stocks.filter { it.isFavorite }
@@ -40,9 +41,15 @@ fun FavouriteListStockScreen(){
 
         LazyColumn {
             items(favoriteStocks) { stock ->
-                StockItem(stock) { selectedStock ->
-                    viewModel.toggleFavorite(selectedStock)
-                }
+                StockItem(
+                    stock = stock,
+                    onFavoriteClick = { selectedStock ->
+                        viewModel.toggleFavorite(selectedStock)
+                    },
+                    onClick = {
+                        navController?.navigate("CompanyOverview/${stock.symbol}")
+                    }
+                )
             }
         }
     }

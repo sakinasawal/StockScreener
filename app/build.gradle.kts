@@ -60,6 +60,8 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.okhttp)
+    implementation(libs.logging.interceptor)
 
     // Coroutine
     implementation(libs.kotlinx.coroutines.core)
