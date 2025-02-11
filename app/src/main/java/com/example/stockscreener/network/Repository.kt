@@ -29,6 +29,7 @@ class Repository(
     suspend fun getStockList(): List<Stock> {
         return withContext(Dispatchers.IO) {
             val cachedData = stockDao.getStocks().firstOrNull()
+            var result: List<Stock> = cachedData ?: emptyList()
             try {
                 if (!rateLimit.canMakeApiCall()) {
                     Log.e("API Rate Limit", "get stock request blocked due to rate limit")
@@ -36,33 +37,36 @@ class Repository(
                 }
 
                 val response = RetrofitInstance.api.getStockList()
-                Log.d("API Response", "Response code: ${response.code()}, body: ${response.body()}")
+                Log.d("API Request", "URL: ${response.raw().request.url}")
+                Log.d("API Response", "Response code: ${response.code()}")
+                Log.d("API Raw Response", "Response body: ${response.body()}")
+
                 if (!response.isSuccessful) {
                     Log.e("API Error", "Failed with status code: ${response.code()}")
                     return@withContext cachedData ?: emptyList()
+                } else {
+                    val responseBody = response.body()
+                    if (responseBody == null) {
+                        Log.e("API Error", "Response body is null")
+                        result = cachedData ?: emptyList()
+                    } else {
+                        val apiStockList = parseCsv(responseBody)
+                        val localStocks = cachedData ?: emptyList()
+
+                        val mergedStockList = apiStockList.map { apiStock ->
+                            val localStock = localStocks.find { it.symbol == apiStock.symbol }
+                            apiStock.copy(isFavorite = localStock?.isFavorite ?: false)
+                        }
+                        Log.d("DB Insert", "Inserting ${apiStockList.size} stocks into database")
+                        stockDao.insertStocks(mergedStockList)
+                        rateLimit.updateLastApiCall()
+                        result = mergedStockList
+                    }
                 }
-
-                val body = response.body()?.string() ?: ""
-                if (body.isEmpty()) {
-                    Log.e("API Error", "Received empty response")
-                    return@withContext cachedData ?: emptyList()
-                }
-
-                val apiStockList = parseCsv(body)
-                val localStocks = cachedData ?: emptyList()
-
-                val mergedStockList = apiStockList.map { apiStock ->
-                    val localStock = localStocks.find { it.symbol == apiStock.symbol }
-                    apiStock.copy(isFavorite = localStock?.isFavorite ?: false)
-                }
-                stockDao.insertStocks(mergedStockList)
-                rateLimit.updateLastApiCall()
-                mergedStockList
-
             } catch (e: Exception) {
                 Log.e("API Exception", "Error fetching stocks: ${e.message}")
-                cachedData ?: emptyList()
             }
+            result
         }
     }
 
@@ -70,6 +74,7 @@ class Repository(
      * Parses csv file to list of object
      */
     private fun parseCsv(csv: String): List<Stock> {
+        Log.d("CSV Data", "Raw CSV: $csv")
         val lines = csv.split("\n").drop(1) // Remove header
         return lines.mapNotNull { line ->
             val values = line.split(",")
@@ -117,7 +122,8 @@ class Repository(
                 }
 
                 val apiData = response.body()
-                if (apiData == null || apiData.symbol.isBlank()) {
+                Log.d("Parsed API Data", "Company Overview: $apiData")
+                if (apiData == null || apiData.symbol.isNullOrEmpty()) {
                     Log.e("API Error", "Invalid company overview response for $symbol")
                     return@withContext cacheData
                 }
@@ -195,5 +201,29 @@ class Repository(
         return companyOverviewDao.getCompanyOverview(symbol)
     }
 
+    suspend fun getTimeSeriesMonthly(symbol: String): List<Pair<String, Float>> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = RetrofitInstance.api.getTimeSeriesMonthly(symbol = symbol)
+                if (!response.isSuccessful) {
+                    Log.e("API Error", "Failed with status code: ${response.code()}")
+                    return@withContext emptyList()
+                }
+
+                val body = response.body()
+                Log.d("API Response", "Response code: ${response.code()}, body: ${response.body()}")
+                val timeSeries = body?.monthlyTimeSeries ?: return@withContext emptyList()
+
+                // Extract date and closing price, then sort by date
+                timeSeries.mapNotNull { (date, entry) ->
+                    entry.close.toFloatOrNull()?.let { closePrice -> date to closePrice }
+                }.sortedBy { it.first } // Sort by date (oldest to newest)
+
+            } catch (e: Exception) {
+                Log.e("API Exception", "Error fetching time series: ${e.message}")
+                emptyList()
+            }
+        }
+    }
 }
 

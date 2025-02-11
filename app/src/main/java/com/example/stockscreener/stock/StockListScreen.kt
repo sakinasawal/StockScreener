@@ -116,11 +116,11 @@ fun StockItem(stock: Stock, onFavoriteClick: (Stock) -> Unit, onClick: () -> Uni
             verticalAlignment = Alignment.CenterVertically
         ){
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = stock.symbol)
-                Text(text = stock.name)
-                Text(text = stock.exchange)
-                Text(text = stock.ipoDate)
-                Text(text = stock.status)
+                Text(text = "Symbol: ${stock.symbol}")
+                Text(text = "Name: ${stock.name}")
+                Text(text = "Exchange: ${stock.exchange}")
+                Text(text = "ipoDate: ${stock.ipoDate}")
+                Text(text = "Status: ${stock.status}")
             }
             IconButton(
                 onClick = { onFavoriteClick(stock) }

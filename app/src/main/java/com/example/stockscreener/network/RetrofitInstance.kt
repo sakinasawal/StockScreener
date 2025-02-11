@@ -5,14 +5,17 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
+import java.util.concurrent.TimeUnit
 
 object RetrofitInstance {
     private const val BASE_URL = "https://www.alphavantage.co/"
 
     private val client = OkHttpClient.Builder()
         .addInterceptor(HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY // Logs full request & response body
+            level = HttpLoggingInterceptor.Level.BODY
         })
+        .connectTimeout(30, TimeUnit.SECONDS) // Prevents connection from hanging
+        .readTimeout(30, TimeUnit.SECONDS)
         .build()
 
     val api: ApiService by lazy {

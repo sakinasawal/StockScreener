@@ -3,6 +3,8 @@ package com.example.stockscreener.stock
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -83,59 +85,15 @@ fun CompanyOverviewContent(company : CompanyOverviewEntity){
             "symbol" to company.symbol,
             "asset type" to company.assetType,
             "name" to company.name,
-            "description" to company.description,
-            "cik" to company.cik,
-            "exchange" to company.exchange,
-            "currency" to company.currency,
-            "country" to company.country,
-            "sector" to company.sector,
-            "industry" to company.industry,
-            "address" to company.address,
-            "fiscalYearEnd" to company.fiscalYearEnd,
-            "latestQuarter" to company.latestQuarter,
-            "marketCapitalization" to company.marketCapitalization,
-            "ebitda" to company.ebitda,
-            "peRatio" to company.peRatio,
-            "pegRatio" to company.pegRatio,
-            "bookValue" to company.bookValue,
-            "dividendPerShare" to company.dividendPerShare,
-            "dividendYield" to company.dividendYield,
-            "eps" to company.eps,
-            "revenuePerShareTTM" to company.revenuePerShareTTM,
-            "profitMargin" to company.profitMargin,
-            "operatingMarginTTM" to company.operatingMarginTTM,
-            "returnOnAssetsTTM" to company.returnOnAssetsTTM,
-            "returnOnEquityTTM" to company.returnOnEquityTTM,
-            "revenueTTM" to company.revenueTTM,
-            "grossProfitTTM" to company.grossProfitTTM,
-            "dilutedEPSTTM" to company.dilutedEPSTTM,
-            "quarterlyEarningsGrowthYOY" to company.quarterlyEarningsGrowthYOY,
-            "quarterlyRevenueGrowthYOY" to company.quarterlyRevenueGrowthYOY,
-            "analystTargetPrice" to company.analystTargetPrice,
-            "analystRatingStrongBuy" to company.analystRatingStrongBuy,
-            "analystRatingBuy" to company.analystRatingBuy,
-            "analystRatingHold" to company.analystRatingHold,
-            "analystRatingSell" to company.analystRatingSell,
-            "analystRatingStrongSell" to company.analystRatingStrongSell,
-            "trailingPE" to company.trailingPE,
-            "forwardPE" to company.forwardPE,
-            "priceToSalesRatioTTM" to company.priceToSalesRatioTTM,
-            "priceToBookRatio" to company.priceToBookRatio,
-            "evToRevenue" to company.evToRevenue,
-            "evToEBITDA" to company.evToEBITDA,
-            "beta" to company.beta,
-            "fiftyTwoWeekHigh" to company.fiftyTwoWeekHigh,
-            "fiftyTwoWeekLow" to company.fiftyTwoWeekLow,
-            "fiftyDayMovingAverage" to company.fiftyDayMovingAverage,
-            "twoHundredDayMovingAverage" to company.twoHundredDayMovingAverage,
-            "sharesOutstanding" to company.sharesOutstanding,
-            "dividendDate" to company.dividendDate,
-            "exDividendDate" to company.exDividendDate
+            "Market Capitalization" to company.marketCapitalization,
+            "Dividend yield" to company.dividendYield,
+            "52-WeekHigh" to company.fiftyTwoWeekHigh,
+            "52-WeekLow" to company.fiftyTwoWeekLow,
         )
 
         Box(
             modifier = Modifier
-                .height(screenHeight)
+                .fillMaxHeight()
                 .verticalScroll(rememberScrollState()) // Enable scrolling
                 .padding(spacing_8)
         ) {
@@ -143,6 +101,10 @@ fun CompanyOverviewContent(company : CompanyOverviewEntity){
                 companyDetails.forEach { (label, value) ->
                     Text(text = "$label : $value")
                 }
+
+                Spacer(modifier = Modifier.height(spacing_20))
+
+                StockChartScreen(symbol = company.symbol)
             }
         }
     }

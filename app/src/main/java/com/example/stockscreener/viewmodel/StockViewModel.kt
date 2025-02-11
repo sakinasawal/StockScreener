@@ -28,6 +28,12 @@ class StockViewModel(application: Application) : AndroidViewModel(application) {
     private val companyOverviewData = MutableStateFlow<CompanyOverviewEntity?>(null)
     val companyOverview: StateFlow<CompanyOverviewEntity?> = companyOverviewData
 
+    private val chartStockPrices = MutableStateFlow<List<Pair<String, Float>>>(emptyList())
+    val stockPrices: StateFlow<List<Pair<String, Float>>> = chartStockPrices
+
+    private val isLoading = MutableStateFlow(false)
+    val isTimeSeriesLoading: StateFlow<Boolean> = isLoading
+
     init {
         viewModelScope.launch{
             repository.getStocksDB().collect{
@@ -80,6 +86,13 @@ class StockViewModel(application: Application) : AndroidViewModel(application) {
                     companyOverviewData.value = it
                 }
             }
+        }
+    }
+
+    fun fetchTimeSeriesMonthly(symbol: String) {
+        viewModelScope.launch {
+            val apiData = repository.getTimeSeriesMonthly(symbol)
+            chartStockPrices.value = apiData
         }
     }
 }

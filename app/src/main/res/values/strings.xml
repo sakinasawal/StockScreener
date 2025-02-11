@@ -7,5 +7,6 @@
     <string name="watch_list">Watch List</string>
     <string name="search">Search</string>
     <string name="company_overview">Company Overview</string>
+    <string name="stock_price_chart">Stock Price Chart</string>
 
 </resources>

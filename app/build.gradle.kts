@@ -106,6 +106,8 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
 
+    // Chart
+    implementation(libs.mpandroidchart)
 }
 
 // Allow references to generated code
