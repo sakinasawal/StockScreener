@@ -115,14 +115,16 @@ class Repository(
                 }
 
                 val response = RetrofitInstance.api.getCompanyOverview(symbol = symbol)
-                Log.d("API Response", "Response code: ${response.code()}, body: ${response.body()}")
+                Log.d("API Request", "URL: ${response.raw().request.url}")
+                Log.d("API Response", "Response code: ${response.code()}")
+
                 if (!response.isSuccessful) {
                     Log.e("API Error", "Failed with status code: ${response.code()}")
                     return@withContext cacheData
                 }
 
                 val apiData = response.body()
-                Log.d("Parsed API Data", "Company Overview: $apiData")
+                Log.d("API Raw Response", "Response Body body: $apiData")
                 if (apiData == null || apiData.symbol.isNullOrEmpty()) {
                     Log.e("API Error", "Invalid company overview response for $symbol")
                     return@withContext cacheData
@@ -201,27 +203,29 @@ class Repository(
         return companyOverviewDao.getCompanyOverview(symbol)
     }
 
-    suspend fun getTimeSeriesMonthly(symbol: String): List<Pair<String, Float>> {
+    suspend fun getTimeSeriesMonthly(symbol: String): Pair<Float, List<Pair<String, Float>>> {
         return withContext(Dispatchers.IO) {
             try {
                 val response = RetrofitInstance.api.getTimeSeriesMonthly(symbol = symbol)
                 if (!response.isSuccessful) {
                     Log.e("API Error", "Failed with status code: ${response.code()}")
-                    return@withContext emptyList()
+                    return@withContext 0f to emptyList()
                 }
 
                 val body = response.body()
                 Log.d("API Response", "Response code: ${response.code()}, body: ${response.body()}")
-                val timeSeries = body?.monthlyTimeSeries ?: return@withContext emptyList()
+                val timeSeries = body?.monthlyTimeSeries ?: return@withContext 0f to emptyList()
 
                 // Extract date and closing price, then sort by date
-                timeSeries.mapNotNull { (date, entry) ->
+                val sortedPrices = timeSeries.mapNotNull { (date, entry) ->
                     entry.close.toFloatOrNull()?.let { closePrice -> date to closePrice }
-                }.sortedBy { it.first } // Sort by date (oldest to newest)
+                }.sortedByDescending { it.first }
 
+                val latestPrice = sortedPrices.firstOrNull()?.second ?: 0f
+                latestPrice to sortedPrices
             } catch (e: Exception) {
                 Log.e("API Exception", "Error fetching time series: ${e.message}")
-                emptyList()
+                0f to emptyList()
             }
         }
     }

@@ -7,9 +7,13 @@ import com.example.stockscreener.data.CompanyOverviewEntity
 import com.example.stockscreener.data.Stock
 import com.example.stockscreener.network.Repository
 import com.example.stockscreener.storage.StockDatabase
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 
 class StockViewModel(application: Application) : AndroidViewModel(application) {
@@ -29,10 +33,10 @@ class StockViewModel(application: Application) : AndroidViewModel(application) {
     val companyOverview: StateFlow<CompanyOverviewEntity?> = companyOverviewData
 
     private val chartStockPrices = MutableStateFlow<List<Pair<String, Float>>>(emptyList())
-    val stockPrices: StateFlow<List<Pair<String, Float>>> = chartStockPrices
+    val stockPricesChart: StateFlow<List<Pair<String, Float>>> = chartStockPrices
 
-    private val isLoading = MutableStateFlow(false)
-    val isTimeSeriesLoading: StateFlow<Boolean> = isLoading
+    private val latestStockPrice = MutableStateFlow(0f)
+    val currentStockPrice: StateFlow<Float> = latestStockPrice
 
     init {
         viewModelScope.launch{
@@ -79,7 +83,7 @@ class StockViewModel(application: Application) : AndroidViewModel(application) {
     fun getCompanyOverview(symbol: String) {
         viewModelScope.launch {
             val apiResponse = repository.getCompanyOverview(symbol)
-            if ( apiResponse != null){
+            if (apiResponse != null){
                 companyOverviewData.value = apiResponse
             } else {
                 repository.getCompanyOverviewFromDB(symbol).collect {
@@ -91,8 +95,19 @@ class StockViewModel(application: Application) : AndroidViewModel(application) {
 
     fun fetchTimeSeriesMonthly(symbol: String) {
         viewModelScope.launch {
-            val apiData = repository.getTimeSeriesMonthly(symbol)
+            val (latestPrice, apiData) = repository.getTimeSeriesMonthly(symbol)
+            latestStockPrice.value = latestPrice
             chartStockPrices.value = apiData
         }
     }
+
+    fun getLatestPriceAndChange(symbol: String): Flow<Pair<Float, Float?>> = flow {
+        val (latestPrice, priceHistory) = repository.getTimeSeriesMonthly(symbol)
+        val previousPrice = priceHistory.getOrNull(1)?.second // Get the second latest closing price
+        val percentageChange = previousPrice?.let {
+            ((latestPrice - it) / it) * 100
+        }
+        emit(latestPrice to percentageChange)
+    }.flowOn(Dispatchers.IO)
+
 }

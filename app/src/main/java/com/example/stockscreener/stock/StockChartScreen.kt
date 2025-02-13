@@ -36,7 +36,7 @@ import androidx.compose.ui.graphics.toArgb
 @Composable
 fun StockChartScreen(symbol : String) {
     val viewModel: StockViewModel = viewModel()
-    val stockPrices by viewModel.stockPrices.collectAsState()
+    val stockPrices by viewModel.stockPricesChart.collectAsState()
 
     LaunchedEffect(symbol) {
         viewModel.fetchTimeSeriesMonthly(symbol)

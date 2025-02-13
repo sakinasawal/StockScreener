@@ -25,6 +25,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -82,26 +86,45 @@ fun StockListScreen(navController: NavController? = null) {
             }
         )
 
-        // Display list of stock
-        LazyColumn {
-            val displaySearchStock = if (isSearching) searchStocksResults else stocks
-            items(displaySearchStock) { stock ->
-                StockItem(
-                    stock = stock,
-                    onFavoriteClick = { selectedStock ->
-                        viewModel.toggleFavorite(selectedStock)
-                    },
-                    onClick = {
-                        navController?.navigate("CompanyOverview/${stock.symbol}")
-                    }
+        val displaySearchStock = if (isSearching) searchStocksResults else stocks
+
+        if (displaySearchStock.isEmpty()){
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = stringResource(id = R.string.no_search_results),
+                    style = AppTypography.bodyLarge,
+                    textAlign = TextAlign.Center
                 )
+            }
+        } else {
+            LazyColumn {
+                items(displaySearchStock) { stock ->
+                    StockItem(
+                        stock = stock,
+                        onFavoriteClick = { selectedStock ->
+                            viewModel.toggleFavorite(selectedStock)
+                        },
+                        onClick = {
+                            navController?.navigate("CompanyOverview/${stock.symbol}")
+                        }
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-fun StockItem(stock: Stock, onFavoriteClick: (Stock) -> Unit, onClick: () -> Unit) {
+fun StockItem(
+    stock: Stock,
+    onFavoriteClick: (Stock) -> Unit,
+    onClick: () -> Unit,
+    latestPrice : Float? = null,
+    percentageChange : Float? = null
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -121,6 +144,20 @@ fun StockItem(stock: Stock, onFavoriteClick: (Stock) -> Unit, onClick: () -> Uni
                 Text(text = "Exchange: ${stock.exchange}")
                 Text(text = "ipoDate: ${stock.ipoDate}")
                 Text(text = "Status: ${stock.status}")
+
+                latestPrice?.let{
+                    Text(text = "Latest Price : $it")
+                }
+
+                percentageChange?.let{
+                    val changeColor = if (it>=0) Color.Green else Color.Red
+                    Text(buildAnnotatedString {
+                        append("Percentage Change: ")
+                        withStyle (style = SpanStyle(color = changeColor)){
+                            append("${"%.2f".format(it)}%")
+                        }
+                    })
+                }
             }
             IconButton(
                 onClick = { onFavoriteClick(stock) }

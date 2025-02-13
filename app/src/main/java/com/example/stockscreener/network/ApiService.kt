@@ -5,14 +5,12 @@ import com.example.stockscreener.data.TimeSeriesResponse
 import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.GET
-import retrofit2.http.Headers
 import retrofit2.http.Query
 
 interface ApiService {
 
-    @GET("query")
+    @GET("query?function=LISTING_STATUS")
     suspend fun getStockList(
-        @Query("function") function: String = "LISTING_STATUS",
         @Query("apikey") apiKey: String = "1G09WZJPV7BJE5O3"
     ): Response<String>
 

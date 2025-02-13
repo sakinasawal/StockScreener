@@ -73,8 +73,9 @@ fun CompanyOverviewScreen(
 
 @Composable
 fun CompanyOverviewContent(company : CompanyOverviewEntity){
-    val configuration = LocalConfiguration.current
-    val screenHeight = configuration.screenHeightDp.dp
+    val viewModel: StockViewModel = viewModel()
+    val currentStockPrice by viewModel.currentStockPrice.collectAsState()
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -82,9 +83,10 @@ fun CompanyOverviewContent(company : CompanyOverviewEntity){
         elevation = CardDefaults.cardElevation(spacing_4)
     ){
         val companyDetails = listOf(
-            "symbol" to company.symbol,
-            "asset type" to company.assetType,
-            "name" to company.name,
+            "Symbol" to company.symbol,
+            "Asset type" to company.assetType,
+            "Name" to company.name,
+            "Current Price" to "$%.2f".format(currentStockPrice),
             "Market Capitalization" to company.marketCapitalization,
             "Dividend yield" to company.dividendYield,
             "52-WeekHigh" to company.fiftyTwoWeekHigh,
