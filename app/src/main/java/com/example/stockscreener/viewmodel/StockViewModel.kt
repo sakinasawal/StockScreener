@@ -18,7 +18,7 @@ import kotlinx.coroutines.launch
 
 class StockViewModel(application: Application) : AndroidViewModel(application) {
     private val database = StockDatabase.getDatabase(application)
-    private val repository = Repository(database.stockDao(), database.companyOverviewDao())
+    private val repository = Repository(database.stockDao(), database.companyOverviewDao(), database.timeSeriesMonthlyDao())
 
     private val listStocks = MutableStateFlow<List<Stock>>(emptyList())
     val stocks: StateFlow<List<Stock>> get() = listStocks
@@ -44,11 +44,19 @@ class StockViewModel(application: Application) : AndroidViewModel(application) {
                 listStocks.value = it
             }
         }
+        fetchStocks()
     }
 
     fun fetchStocks() {
         viewModelScope.launch {
-            repository.getStockList()
+           val apiStock =  repository.getStockList()
+            if (apiStock.isNotEmpty()){
+               listStocks.value = apiStock
+            } else {
+                repository.getStocksDB().collect{
+                    listStocks.value = it
+                }
+            }
         }
     }
 
@@ -57,9 +65,20 @@ class StockViewModel(application: Application) : AndroidViewModel(application) {
             if (keyword.isNotEmpty()){
                 isSearchStock.value = true
                 val localSearch = repository.searchStock(keyword).first()
-                searchListStocks.value = localSearch.ifEmpty {
-                    repository.getStockList().filter {
+
+                if (localSearch.isNotEmpty()){
+                    searchListStocks.value = localSearch
+                } else {
+                    val apiStock = repository.getStockList().filter {
                         it.symbol.contains(keyword, ignoreCase = true)
+                    }
+
+                    if (apiStock.isNotEmpty()){
+                        searchListStocks.value = apiStock
+                    } else {
+                        repository.searchStock(keyword).collect{
+                            searchListStocks.value = it
+                        }
                     }
                 }
             } else {

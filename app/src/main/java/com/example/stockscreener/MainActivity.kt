@@ -8,29 +8,41 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.navigation.compose.NavHost
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
 import com.example.stockscreener.stock.BottomNavBar
 import com.example.stockscreener.ui.theme.DefaultTheme
 import androidx.compose.ui.Modifier
-import androidx.navigation.compose.composable
-import com.example.stockscreener.stock.FavouriteListStockScreen
-import com.example.stockscreener.stock.StockListScreen
+import com.example.stockscreener.network.NetworkMonitor
 
 class MainActivity : ComponentActivity() {
+    private lateinit var networkMonitor: NetworkMonitor
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        networkMonitor = NetworkMonitor(this)
+        networkMonitor.register()
+
         enableEdgeToEdge()
         setContent {
+            val isConnected by networkMonitor.isConnectedNetwork.collectAsState()
+
             DefaultTheme {
-                MainApplication()
+                MainApplication(isConnected)
             }
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        networkMonitor.unregister()
     }
 }
 
 @Composable
-fun MainApplication() {
+fun MainApplication(isConnected : Boolean) {
     val navController = rememberNavController()
     Scaffold(
         bottomBar = { BottomNavBar(navController) }
@@ -44,11 +56,15 @@ fun MainApplication() {
             composable(navController, Screen.WatchList)
             composable(navController, Screen.CompanyDetail)
         }
+
+        if (!isConnected){
+            NoNetworkInternetScreen()
+        }
     }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun MainApplicationPreview() {
-    MainApplication()
+    MainApplication(isConnected = true)
 }

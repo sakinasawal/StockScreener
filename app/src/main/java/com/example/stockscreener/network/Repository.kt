@@ -3,16 +3,18 @@ package com.example.stockscreener.network
 import android.util.Log
 import com.example.stockscreener.dao.CompanyOverviewDao
 import com.example.stockscreener.dao.StockDao
+import com.example.stockscreener.dao.TimeSeriesMonthlyDao
 import com.example.stockscreener.data.CompanyOverview
 import com.example.stockscreener.data.CompanyOverviewEntity
 import com.example.stockscreener.data.Stock
+import com.example.stockscreener.data.TimeSeriesMonthlyEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
 
 /**
- * getStockList() || getCompanyOverview()
+ * getStockList() || getCompanyOverview() || getTimer
  * 1) Check the API rate limit before calling API
  * 2) Use cache if API fails
  * 3) Save data into room DB
@@ -21,7 +23,8 @@ import kotlinx.coroutines.withContext
  */
 class Repository(
     private val stockDao: StockDao,
-    private val companyOverviewDao: CompanyOverviewDao
+    private val companyOverviewDao: CompanyOverviewDao,
+    private val timeSeriesMonthlyDao : TimeSeriesMonthlyDao
 ) {
 
     private val rateLimit = ApiRateLimit()
@@ -119,26 +122,28 @@ class Repository(
                 Log.d("API Response", "Response code: ${response.code()}")
 
                 if (!response.isSuccessful) {
-                    Log.e("API Error", "Failed with status code: ${response.code()}")
+                    Log.e("API Error Company Overview", "Failed with status code: ${response.code()}")
                     return@withContext cacheData
                 }
 
                 val apiData = response.body()
-                Log.d("API Raw Response", "Response Body body: $apiData")
+                Log.d("API Raw Response", "Response body: $apiData")
+
                 if (apiData == null || apiData.symbol.isNullOrEmpty()) {
-                    Log.e("API Error", "Invalid company overview response for $symbol")
+                    Log.w("API Warning", "Empty response for $symbol")
                     return@withContext cacheData
                 }
 
                 val mapData = apiData.toEntity()
                 Log.d("DB Insert", "Saving company overview: $mapData")
                 companyOverviewDao.insertCompanyOverview(mapData)
+
                 rateLimit.updateLastApiCall()
                 mapData
 
             } catch (e: Exception) {
                 Log.e("API Exception", "Error fetching company overview: ${e.message}")
-                cacheData
+                return@withContext cacheData
             }
         }
     }
@@ -148,54 +153,10 @@ class Repository(
             symbol = symbol,
             assetType = assetType,
             name = name,
-            description = description,
-            cik = cik,
-            exchange = exchange,
-            currency = currency,
-            country = country,
-            sector = sector,
-            industry = industry,
-            address = address,
-            fiscalYearEnd = fiscalYearEnd,
-            latestQuarter = latestQuarter,
             marketCapitalization = marketCapitalization,
-            ebitda = ebitda,
-            peRatio = peRatio,
-            pegRatio = pegRatio,
-            bookValue = bookValue,
-            dividendPerShare = dividendPerShare,
             dividendYield = dividendYield,
-            eps = eps,
-            revenuePerShareTTM = revenuePerShareTTM,
-            profitMargin = profitMargin,
-            operatingMarginTTM = operatingMarginTTM,
-            returnOnAssetsTTM = returnOnAssetsTTM,
-            returnOnEquityTTM = returnOnEquityTTM,
-            revenueTTM = revenueTTM,
-            grossProfitTTM = grossProfitTTM,
-            dilutedEPSTTM = dilutedEPSTTM,
-            quarterlyEarningsGrowthYOY = quarterlyEarningsGrowthYOY,
-            quarterlyRevenueGrowthYOY = quarterlyRevenueGrowthYOY,
-            analystTargetPrice = analystTargetPrice,
-            analystRatingStrongBuy = analystRatingStrongBuy,
-            analystRatingBuy = analystRatingBuy,
-            analystRatingHold = analystRatingHold,
-            analystRatingSell = analystRatingSell,
-            analystRatingStrongSell = analystRatingStrongSell,
-            trailingPE = trailingPE,
-            forwardPE = forwardPE,
-            priceToSalesRatioTTM = priceToSalesRatioTTM,
-            priceToBookRatio = priceToBookRatio,
-            evToRevenue = evToRevenue,
-            evToEBITDA = evToEBITDA,
-            beta = beta,
             fiftyTwoWeekHigh = fiftyTwoWeekHigh,
-            fiftyTwoWeekLow = fiftyTwoWeekLow,
-            fiftyDayMovingAverage = fiftyDayMovingAverage,
-            twoHundredDayMovingAverage = twoHundredDayMovingAverage,
-            sharesOutstanding = sharesOutstanding,
-            dividendDate = dividendDate,
-            exDividendDate = exDividendDate
+            fiftyTwoWeekLow = fiftyTwoWeekLow
         )
     }
 
@@ -203,29 +164,49 @@ class Repository(
         return companyOverviewDao.getCompanyOverview(symbol)
     }
 
-    suspend fun getTimeSeriesMonthly(symbol: String): Pair<Float, List<Pair<String, Float>>> {
+    suspend fun getTimeSeriesMonthly(symbol: String): Pair<Float, List<Pair<String, Float>>>  {
         return withContext(Dispatchers.IO) {
+            val cachedData = timeSeriesMonthlyDao.getTimeSeries(symbol)
+            val cachedPrice = cachedData.map { it.date to it.closePrice }
+            var latestPrice = cachedData.firstOrNull()?.closePrice ?: 0f
             try {
+                if (!rateLimit.canMakeApiCall()) {
+                    Log.d("API Rate Limit Time Series Monthly", "get time series monthly request blocked due to rate limit")
+                    return@withContext latestPrice to cachedPrice
+                }
+
                 val response = RetrofitInstance.api.getTimeSeriesMonthly(symbol = symbol)
+                Log.d("API Request Time Series Monthly", "URL: ${response.raw().request.url}")
+                Log.d("API Response Time Series Monthly", "Response code: ${response.code()}")
+
                 if (!response.isSuccessful) {
                     Log.e("API Error", "Failed with status code: ${response.code()}")
-                    return@withContext 0f to emptyList()
+                    return@withContext latestPrice to cachedPrice
                 }
 
                 val body = response.body()
-                Log.d("API Response", "Response code: ${response.code()}, body: ${response.body()}")
-                val timeSeries = body?.monthlyTimeSeries ?: return@withContext 0f to emptyList()
+                Log.d("API Response", "Response code : ${response.code()}, body: ${response.body()}")
+                val timeSeries = body?.monthlyTimeSeries ?: return@withContext latestPrice to cachedPrice
 
                 // Extract date and closing price, then sort by date
                 val sortedPrices = timeSeries.mapNotNull { (date, entry) ->
-                    entry.close.toFloatOrNull()?.let { closePrice -> date to closePrice }
-                }.sortedByDescending { it.first }
+                    entry.close.toFloatOrNull()?.let { closePrice ->
+                        TimeSeriesMonthlyEntity(symbol = symbol, date = date, closePrice = closePrice)
+                    }
+                }.sortedByDescending { it.date }
 
-                val latestPrice = sortedPrices.firstOrNull()?.second ?: 0f
-                latestPrice to sortedPrices
+                // Update latestPrice with the new API data
+                latestPrice = sortedPrices.firstOrNull()?.closePrice ?: latestPrice
+
+                timeSeriesMonthlyDao.deleteBySymbol(symbol) // Remove old data
+                timeSeriesMonthlyDao.insertAll(sortedPrices)
+                rateLimit.updateLastApiCall()
+
+                return@withContext latestPrice to cachedPrice
+
             } catch (e: Exception) {
                 Log.e("API Exception", "Error fetching time series: ${e.message}")
-                0f to emptyList()
+                return@withContext latestPrice to cachedPrice
             }
         }
     }

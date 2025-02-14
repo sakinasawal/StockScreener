@@ -12,8 +12,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.stockscreener.viewmodel.StockViewModel
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,7 +24,7 @@ import com.example.stockscreener.spacing_20
 import com.example.stockscreener.ui.theme.AppTypography
 
 @Composable
-fun FavouriteListStockScreen(navController: NavController? = null){
+fun WatchListStockScreen(navController: NavController? = null){
     val viewModel: StockViewModel = viewModel()
     val stocks by viewModel.stocks.collectAsState()
     val favoriteStocks = stocks.filter { it.isFavorite }

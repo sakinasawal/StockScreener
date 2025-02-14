@@ -1,29 +1,16 @@
 package com.example.stockscreener.stock
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.stockscreener.viewmodel.StockViewModel
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.viewinterop.AndroidView
-import com.example.stockscreener.R
-import com.example.stockscreener.TextLabel
-import com.example.stockscreener.spacing_16
-import com.example.stockscreener.spacing_20
 import com.example.stockscreener.spacing_250
-import com.example.stockscreener.ui.theme.AppTypography
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
@@ -34,13 +21,8 @@ import androidx.compose.ui.graphics.toArgb
 
 
 @Composable
-fun StockChartScreen(symbol : String) {
-    val viewModel: StockViewModel = viewModel()
+fun StockChartScreen(viewModel: StockViewModel) {
     val stockPrices by viewModel.stockPricesChart.collectAsState()
-
-    LaunchedEffect(symbol) {
-        viewModel.fetchTimeSeriesMonthly(symbol)
-    }
 
     StockLineChart(stockPrices)
 }

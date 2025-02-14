@@ -6,15 +6,15 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.example.stockscreener.stock.CompanyOverviewScreen
-import com.example.stockscreener.stock.FavouriteListStockScreen
+import com.example.stockscreener.stock.WatchListStockScreen
 import com.example.stockscreener.stock.StockListScreen
 
 sealed class Screen(val route: String, val content: @Composable (NavController, Bundle?) -> Unit) {
     data object StockList : Screen("StockList", { navController, _ -> StockListScreen(navController = navController) })
-    data object WatchList : Screen("WatchList", { navController, _ -> FavouriteListStockScreen(navController = navController) })
-    data object CompanyDetail : Screen("CompanyOverview/{symbol}", { _, arguments ->
+    data object WatchList : Screen("WatchList", { navController, _ -> WatchListStockScreen(navController = navController) })
+    data object CompanyDetail : Screen("CompanyOverview/{symbol}", { navController, arguments ->
         val symbol = arguments?.getString("symbol") ?: error("Symbol is required.")
-        CompanyOverviewScreen(symbol = symbol)
+        CompanyOverviewScreen(navController = navController, symbol = symbol)
     })
 }
 

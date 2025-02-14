@@ -10,5 +10,8 @@
     <string name="no_search_results">No stocks found for your search.</string>
     <string name="company_overview">Company Overview</string>
     <string name="stock_price_chart">Stock Price Chart</string>
-
+    <string name="error">Error</string>
+    <string name="something_went_wrong">Something Went Wrong!</string>
+    <string name="ok">OK</string>
+    <string name="no_internet_connection">No internet connection</string>
 </resources>

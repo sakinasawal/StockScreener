@@ -150,7 +150,7 @@ fun StockItem(
                 }
 
                 percentageChange?.let{
-                    val changeColor = if (it>=0) Color.Green else Color.Red
+                    val changeColor = if (it>=0) Green else Color.Red
                     Text(buildAnnotatedString {
                         append("Percentage Change: ")
                         withStyle (style = SpanStyle(color = changeColor)){

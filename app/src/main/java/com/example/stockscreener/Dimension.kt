@@ -12,6 +12,7 @@ val spacing_12 = 12.dp
 val spacing_16 = 16.dp
 val spacing_20 = 20.dp
 val spacing_24 = 24.dp
+val spacing_64 = 64.dp
 val spacing_250 = 250.dp
 
 // Font size

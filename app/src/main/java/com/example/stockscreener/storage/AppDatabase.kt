@@ -6,13 +6,16 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.example.stockscreener.dao.CompanyOverviewDao
 import com.example.stockscreener.dao.StockDao
+import com.example.stockscreener.dao.TimeSeriesMonthlyDao
 import com.example.stockscreener.data.CompanyOverviewEntity
 import com.example.stockscreener.data.Stock
+import com.example.stockscreener.data.TimeSeriesMonthlyEntity
 
-@Database(entities = [Stock::class, CompanyOverviewEntity::class], version = 1, exportSchema = false)
+@Database(entities = [Stock::class, CompanyOverviewEntity::class, TimeSeriesMonthlyEntity::class], version = 1, exportSchema = false)
 abstract class StockDatabase : RoomDatabase() {
     abstract fun stockDao(): StockDao
     abstract fun companyOverviewDao() :  CompanyOverviewDao
+    abstract fun timeSeriesMonthlyDao() : TimeSeriesMonthlyDao
 
     companion object {
         @Volatile
