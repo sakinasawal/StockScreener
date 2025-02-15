@@ -31,45 +31,46 @@ class Repository(
 
     suspend fun getStockList(): List<Stock> {
         return withContext(Dispatchers.IO) {
-            val cachedData = stockDao.getStocks().firstOrNull()
-            var result: List<Stock> = cachedData ?: emptyList()
+
+            val cachedData = stockDao.getStocks().firstOrNull() ?: emptyList()
+
             try {
+
                 if (!rateLimit.canMakeApiCall()) {
                     Log.e("API Rate Limit", "get stock request blocked due to rate limit")
-                    return@withContext cachedData?: emptyList()
+                    return@withContext cachedData
                 }
 
                 val response = RetrofitInstance.api.getStockList()
                 Log.d("API Request", "URL: ${response.raw().request.url}")
                 Log.d("API Response", "Response code: ${response.code()}")
-                Log.d("API Raw Response", "Response body: ${response.body()}")
 
                 if (!response.isSuccessful) {
                     Log.e("API Error", "Failed with status code: ${response.code()}")
-                    return@withContext cachedData ?: emptyList()
-                } else {
-                    val responseBody = response.body()
-                    if (responseBody == null) {
-                        Log.e("API Error", "Response body is null")
-                        result = cachedData ?: emptyList()
-                    } else {
-                        val apiStockList = parseCsv(responseBody)
-                        val localStocks = cachedData ?: emptyList()
-
-                        val mergedStockList = apiStockList.map { apiStock ->
-                            val localStock = localStocks.find { it.symbol == apiStock.symbol }
-                            apiStock.copy(isFavorite = localStock?.isFavorite ?: false)
-                        }
-                        Log.d("DB Insert", "Inserting ${apiStockList.size} stocks into database")
-                        stockDao.insertStocks(mergedStockList)
-                        rateLimit.updateLastApiCall()
-                        result = mergedStockList
-                    }
+                    return@withContext cachedData
                 }
+
+                val responseBody = response.body()
+                if (responseBody == null) {
+                    Log.e("API Error", "Response body is null")
+                    return@withContext cachedData
+
+                }
+
+                val apiStockList = parseCsv(responseBody)
+                val mergedStockList = apiStockList.map { apiStock ->
+                    val localStock = cachedData.find { it.symbol == apiStock.symbol }
+                    apiStock.copy(isFavorite = localStock?.isFavorite ?: false)
+                }
+
+                stockDao.insertStocks(mergedStockList)
+                rateLimit.updateLastApiCall()
+                return@withContext mergedStockList
+
             } catch (e: Exception) {
                 Log.e("API Exception", "Error fetching stocks: ${e.message}")
+                return@withContext cachedData
             }
-            result
         }
     }
 
@@ -77,7 +78,6 @@ class Repository(
      * Parses csv file to list of object
      */
     private fun parseCsv(csv: String): List<Stock> {
-        Log.d("CSV Data", "Raw CSV: $csv")
         val lines = csv.split("\n").drop(1) // Remove header
         return lines.mapNotNull { line ->
             val values = line.split(",")

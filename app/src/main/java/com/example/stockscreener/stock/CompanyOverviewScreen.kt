@@ -54,7 +54,7 @@ fun CompanyOverviewScreen(
     LaunchedEffect(Unit) {
         viewModel.getCompanyOverview(symbol)
         viewModel.fetchTimeSeriesMonthly(symbol)
-        delay(3000)
+        delay(30000)
         if (companyOverview == null) {
             showErrorDialog = true
         }
@@ -119,7 +119,7 @@ fun CompanyOverviewContent(company : CompanyOverviewEntity, viewModel: StockView
         Box(
             modifier = Modifier
                 .fillMaxHeight()
-                .verticalScroll(rememberScrollState()) // Enable scrolling
+                .verticalScroll(rememberScrollState())
                 .padding(spacing_8)
         ) {
             Column {

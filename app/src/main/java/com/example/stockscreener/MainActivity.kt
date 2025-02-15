@@ -45,6 +45,7 @@ class MainActivity : ComponentActivity() {
 fun MainApplication(isConnected : Boolean) {
     val navController = rememberNavController()
     Scaffold(
+        topBar = { NoNetworkBanner(isConnected) },
         bottomBar = { BottomNavBar(navController) }
     ) { paddingValues ->
         NavHost(
@@ -55,10 +56,6 @@ fun MainApplication(isConnected : Boolean) {
             composable(navController, Screen.StockList)
             composable(navController, Screen.WatchList)
             composable(navController, Screen.CompanyDetail)
-        }
-
-        if (!isConnected){
-            NoNetworkInternetScreen()
         }
     }
 }
