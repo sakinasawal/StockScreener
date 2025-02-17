@@ -64,12 +64,6 @@ class Repository(
                 }
 
                 stockDao.insertStocks(mergedStockList)
-
-                mergedStockList.take(5).forEach { stock ->
-                    launch { getCompanyOverview(stock.symbol) }
-                    launch { getTimeSeriesMonthly(stock.symbol) }
-                }
-
                 rateLimit.updateLastApiCall()
                 return@withContext mergedStockList
 
@@ -153,21 +147,6 @@ class Repository(
         }
     }
 
-    private suspend fun fetchAndCacheCompanyOverview(symbol: String) :  CompanyOverviewEntity? {
-        return try {
-            val response = RetrofitInstance.api.getCompanyOverview(symbol = symbol)
-            if (response.isSuccessful) {
-                response.body()?.toEntity()?.also {
-                    companyOverviewDao.insertCompanyOverview(it) // Save new data
-                    Log.d("fetchCompanyOverview", "Fetching overview for symbol: $symbol")
-                }
-            } else null
-        } catch (e: Exception) {
-            Log.e("API Exception", "Error fetching company overview for $symbol: ${e.message}")
-            null
-        }
-    }
-
     private fun CompanyOverview.toEntity(): CompanyOverviewEntity {
         return CompanyOverviewEntity(
             symbol = symbol,
@@ -226,30 +205,6 @@ class Repository(
                 Log.e("API Exception", "Error fetching time series: ${e.message}")
                 return@withContext getCachedTimeSeries(symbol)
             }
-        }
-    }
-
-    private suspend fun fetchAndCacheTimeSeries(symbol: String) : Pair<Float, List<Pair<String, Float>>>? {
-        return try {
-            val response = RetrofitInstance.api.getTimeSeriesMonthly(symbol = symbol)
-            if (response.isSuccessful) {
-                val timeSeries = response.body()?.monthlyTimeSeries?.mapNotNull { (date, entry) ->
-                    entry.close.toFloatOrNull()?.let { closePrice ->
-                        TimeSeriesMonthlyEntity(symbol = symbol, date = date, closePrice = closePrice)
-                    }
-                }?.sortedByDescending { it.date } ?: return null
-
-                val latestPrice = timeSeries.firstOrNull()?.closePrice ?: 0f
-
-                timeSeriesMonthlyDao.deleteBySymbol(symbol) // Remove old data
-                timeSeriesMonthlyDao.insertAll(timeSeries) // Save new data
-
-                return latestPrice to timeSeries.map { it.date to it.closePrice }
-            }
-            null
-        } catch (e: Exception) {
-            Log.e("API Exception", "Error fetching time series for $symbol: ${e.message}")
-            null
         }
     }
 
