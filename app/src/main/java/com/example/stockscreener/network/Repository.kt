@@ -65,7 +65,7 @@ class Repository(
 
                 stockDao.insertStocks(mergedStockList)
 
-                mergedStockList.forEach { stock ->
+                mergedStockList.take(5).forEach { stock ->
                     launch { getCompanyOverview(stock.symbol) }
                     launch { getTimeSeriesMonthly(stock.symbol) }
                 }
