@@ -8,6 +8,7 @@
     <string name="no_watch_list">You have not added any stocks to your watchlist.</string>
     <string name="search">Search</string>
     <string name="no_search_results">No stocks found for your search.</string>
+    <string name="no_stocks_available">No stocks available</string>
     <string name="company_overview">Company Overview</string>
     <string name="stock_price_chart">Stock Price Chart</string>
     <string name="error">Error</string>

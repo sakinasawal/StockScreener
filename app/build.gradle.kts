@@ -51,6 +51,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.core.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -108,6 +109,16 @@ dependencies {
 
     // Chart
     implementation(libs.mpandroidchart)
+
+    // Unit testing
+    testImplementation(libs.kotlinx.coroutines.test.v164)
+    testImplementation(libs.mockk.v1135) 
+    testImplementation(libs.truth.v113)
+    testImplementation(libs.robolectric)
+    testImplementation (libs.mockk.v1135)
+    testImplementation (libs.kotlinx.coroutines.test.v171)
+    testImplementation (libs.truth)
+    testImplementation(libs.androidx.core.testing)
 }
 
 // Allow references to generated code

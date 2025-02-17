@@ -94,7 +94,7 @@ fun StockListScreen(navController: NavController? = null) {
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = stringResource(id = R.string.no_search_results),
+                    text = stringResource(id = if(isSearching) R.string.no_search_results else R.string.no_stocks_available),
                     style = AppTypography.bodyLarge,
                     textAlign = TextAlign.Center
                 )

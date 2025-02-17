@@ -11,6 +11,7 @@ import com.example.stockscreener.data.TimeSeriesMonthlyEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
@@ -35,7 +36,6 @@ class Repository(
             val cachedData = stockDao.getStocks().firstOrNull() ?: emptyList()
 
             try {
-
                 if (!rateLimit.canMakeApiCall()) {
                     Log.e("API Rate Limit", "get stock request blocked due to rate limit")
                     return@withContext cachedData
@@ -64,6 +64,12 @@ class Repository(
                 }
 
                 stockDao.insertStocks(mergedStockList)
+
+                mergedStockList.forEach { stock ->
+                    launch { getCompanyOverview(stock.symbol) }
+                    launch { getTimeSeriesMonthly(stock.symbol) }
+                }
+
                 rateLimit.updateLastApiCall()
                 return@withContext mergedStockList
 
@@ -135,7 +141,6 @@ class Repository(
                 }
 
                 val mapData = apiData.toEntity()
-                Log.d("DB Insert", "Saving company overview: $mapData")
                 companyOverviewDao.insertCompanyOverview(mapData)
 
                 rateLimit.updateLastApiCall()
@@ -145,6 +150,21 @@ class Repository(
                 Log.e("API Exception", "Error fetching company overview: ${e.message}")
                 return@withContext cacheData
             }
+        }
+    }
+
+    private suspend fun fetchAndCacheCompanyOverview(symbol: String) :  CompanyOverviewEntity? {
+        return try {
+            val response = RetrofitInstance.api.getCompanyOverview(symbol = symbol)
+            if (response.isSuccessful) {
+                response.body()?.toEntity()?.also {
+                    companyOverviewDao.insertCompanyOverview(it) // Save new data
+                    Log.d("fetchCompanyOverview", "Fetching overview for symbol: $symbol")
+                }
+            } else null
+        } catch (e: Exception) {
+            Log.e("API Exception", "Error fetching company overview for $symbol: ${e.message}")
+            null
         }
     }
 
@@ -166,27 +186,23 @@ class Repository(
 
     suspend fun getTimeSeriesMonthly(symbol: String): Pair<Float, List<Pair<String, Float>>>  {
         return withContext(Dispatchers.IO) {
-            val cachedData = timeSeriesMonthlyDao.getTimeSeries(symbol)
-            val cachedPrice = cachedData.map { it.date to it.closePrice }
-            var latestPrice = cachedData.firstOrNull()?.closePrice ?: 0f
             try {
                 if (!rateLimit.canMakeApiCall()) {
                     Log.d("API Rate Limit Time Series Monthly", "get time series monthly request blocked due to rate limit")
-                    return@withContext latestPrice to cachedPrice
+                    return@withContext getCachedTimeSeries(symbol)
                 }
 
                 val response = RetrofitInstance.api.getTimeSeriesMonthly(symbol = symbol)
                 Log.d("API Request Time Series Monthly", "URL: ${response.raw().request.url}")
-                Log.d("API Response Time Series Monthly", "Response code: ${response.code()}")
 
                 if (!response.isSuccessful) {
                     Log.e("API Error", "Failed with status code: ${response.code()}")
-                    return@withContext latestPrice to cachedPrice
+                    return@withContext getCachedTimeSeries(symbol)
                 }
 
                 val body = response.body()
                 Log.d("API Response", "Response code : ${response.code()}, body: ${response.body()}")
-                val timeSeries = body?.monthlyTimeSeries ?: return@withContext latestPrice to cachedPrice
+                val timeSeries = body?.monthlyTimeSeries ?: return@withContext getCachedTimeSeries(symbol)
 
                 // Extract date and closing price, then sort by date
                 val sortedPrices = timeSeries.mapNotNull { (date, entry) ->
@@ -196,19 +212,52 @@ class Repository(
                 }.sortedByDescending { it.date }
 
                 // Update latestPrice with the new API data
-                latestPrice = sortedPrices.firstOrNull()?.closePrice ?: latestPrice
+                val latestPrice = sortedPrices.firstOrNull()?.closePrice ?: 0f
 
-                timeSeriesMonthlyDao.deleteBySymbol(symbol) // Remove old data
-                timeSeriesMonthlyDao.insertAll(sortedPrices)
+                timeSeriesMonthlyDao.run {
+                    deleteBySymbol(symbol)
+                    insertAll(sortedPrices)
+                }
                 rateLimit.updateLastApiCall()
 
-                return@withContext latestPrice to cachedPrice
+                return@withContext latestPrice to sortedPrices.map { it.date to it.closePrice }
 
             } catch (e: Exception) {
                 Log.e("API Exception", "Error fetching time series: ${e.message}")
-                return@withContext latestPrice to cachedPrice
+                return@withContext getCachedTimeSeries(symbol)
             }
         }
+    }
+
+    private suspend fun fetchAndCacheTimeSeries(symbol: String) : Pair<Float, List<Pair<String, Float>>>? {
+        return try {
+            val response = RetrofitInstance.api.getTimeSeriesMonthly(symbol = symbol)
+            if (response.isSuccessful) {
+                val timeSeries = response.body()?.monthlyTimeSeries?.mapNotNull { (date, entry) ->
+                    entry.close.toFloatOrNull()?.let { closePrice ->
+                        TimeSeriesMonthlyEntity(symbol = symbol, date = date, closePrice = closePrice)
+                    }
+                }?.sortedByDescending { it.date } ?: return null
+
+                val latestPrice = timeSeries.firstOrNull()?.closePrice ?: 0f
+
+                timeSeriesMonthlyDao.deleteBySymbol(symbol) // Remove old data
+                timeSeriesMonthlyDao.insertAll(timeSeries) // Save new data
+
+                return latestPrice to timeSeries.map { it.date to it.closePrice }
+            }
+            null
+        } catch (e: Exception) {
+            Log.e("API Exception", "Error fetching time series for $symbol: ${e.message}")
+            null
+        }
+    }
+
+    private suspend fun getCachedTimeSeries(symbol: String): Pair<Float, List<Pair<String, Float>>> {
+        val cachedData = timeSeriesMonthlyDao.getTimeSeries(symbol)
+        val cachedPrice = cachedData.map { it.date to it.closePrice }
+        val latestPrice = cachedData.firstOrNull()?.closePrice ?: 0f
+        return latestPrice to cachedPrice
     }
 }
 
