@@ -45,11 +45,11 @@ jobs:
         with:
           ruby-version: '3.1'
 
-      - name: Install fastlane
+      - name: Install Fastlane
         run: gem install fastlane
 
       # Step 6: Build & distribute using Fastlane
-      - name: Run fastlane
+      - name: Run Fastlane
         run: |
           cd $GITHUB_WORKSPACE
           fastlane distributeFirebase
