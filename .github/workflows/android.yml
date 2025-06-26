@@ -48,10 +48,15 @@ jobs:
       - name: Install Fastlane
         run: gem install fastlane
 
+      - name: Check working directory
+        run: |
+          echo "Current directory is: $(pwd)"
+          echo "Listing files:"
+          ls -la
+
       # Step 6: Build & distribute using Fastlane
       - name: Run Fastlane
         run: |
-          cd $GITHUB_WORKSPACE
           fastlane distributeFirebase
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
