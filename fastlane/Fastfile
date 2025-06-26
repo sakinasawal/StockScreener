@@ -1,0 +1,62 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+#
+# For a list of all available actions, check out
+#
+#     https://docs.fastlane.tools/actions
+#
+# For a list of all available plugins, check out
+#
+#     https://docs.fastlane.tools/plugins/available-plugins
+#
+
+# Uncomment the line if you want fastlane to automatically update itself
+# update_fastlane
+
+default_platform(:android)
+
+platform :android do
+
+   desc "Upload release build to Firebase App Distribution"
+   lane :distributeFirebase do
+       buildAndroidAPK
+       firebase_app_distribution(
+       app: "1:553459087272:android:7d68d0cd04b55595578f9d",
+       release_notes: "Release uploaded via Fastlane 🎉",
+       groups: "uat-testers"
+       )
+   end
+
+   # To build .apk and .aab file without upload it in firebase
+   desc "Build signed APK for Android"
+   lane :buildAndroidAPK do
+       gradle(task: "clean :app:assembleRelease")
+   end
+
+   desc "Build signed AAB for Android"
+   lane :buildAndroidAAB do
+       gradle(task: "clean :app:bundleRelease")
+  end
+
+  desc "Runs all the tests"
+  lane :test do
+    gradle(task: "test")
+  end
+
+  desc "Submit a new Beta Build to Crashlytics Beta"
+  lane :beta do
+    gradle(task: "clean assembleRelease")
+    crashlytics
+  
+    # sh "your_script.sh"
+    # You can also use other beta testing services here
+  end
+
+  # to upload in google playstore
+  desc "Deploy a new version to the Google Play"
+  lane :deploy do
+    gradle(task: "clean assembleRelease")
+    upload_to_play_store
+  end
+
+end
