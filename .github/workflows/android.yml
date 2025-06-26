@@ -60,6 +60,13 @@ jobs:
           ls -la
           ls -la fastlane
 
+      - name: Generate keystore.properties
+        run: |
+          echo "storeFile=app/my-release-key.jks" > keystore.properties
+          echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" >> keystore.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> keystore.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> keystore.properties
+
       # Step 6: Build & distribute using Fastlane
       - name: Run Fastlane
         run: fastlane distributeFirebase
