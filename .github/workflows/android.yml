@@ -45,7 +45,7 @@ jobs:
         with:
           ruby-version: '3.1'
 
-      - name: Install fastlane
+      - name: Install Fastlane
         run: gem install fastlane
 
       - name: Check working directory
@@ -61,7 +61,7 @@ jobs:
           ls -la fastlane
 
       # Step 6: Build & distribute using Fastlane
-      - name: Run fastlane
+      - name: Run Fastlane
         run: |
           fastlane distributeFirebase
         env:
