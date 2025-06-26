@@ -50,8 +50,9 @@ jobs:
 
       # Step 6: Build & distribute using Fastlane
       - name: Run fastlane
-        run: fastlane distributeFirebase
-
+        run: |
+          cd $GITHUB_WORKSPACE
+          fastlane distributeFirebase
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
