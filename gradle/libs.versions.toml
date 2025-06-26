@@ -1,6 +1,6 @@
 [versions]
 accompanistCharts = "latest-version"
-agp = "8.8.0"
+agp = "8.7.0"
 androidxJunit = "1.1.5"
 constraintlayoutCompose = "1.1.0"
 converterGson = "2.11.0"
@@ -8,6 +8,7 @@ converterScalars = "2.9.0"
 coreTesting = "2.2.0"
 coroutineVersion = "1.9.0"
 espressoCoreVersion = "3.5.1"
+firebaseBom = "33.15.0"
 gradle = "7.4.2"
 hiltAndroid = "2.49"
 hiltAndroidCompiler = "2.49"
@@ -43,6 +44,7 @@ uiTestJunit4 = "1.7.8"
 uiTestJunit4Version = "1.5.0"
 uiTestManifest = "1.7.8"
 coreKtxVersion = "1.6.1"
+firebaseVersion = "4.4.2"
 
 [libraries]
 accompanist-charts = { module = "com.google.accompanist:accompanist-charts", version.ref = "accompanistCharts" }
@@ -69,6 +71,7 @@ androidx-ui-test-junit4-v150 = { module = "androidx.compose.ui:ui-test-junit4", 
 androidx-ui-viewbinding = { module = "androidx.compose.ui:ui-viewbinding" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
 converter-scalars = { module = "com.squareup.retrofit2:converter-scalars", version.ref = "converterScalars" }
+firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 gradle = { module = "com.android.tools.build:gradle", version.ref = "gradle" }
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroid" }
 hilt-android-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hiltAndroidCompiler" }
@@ -109,9 +112,10 @@ ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
 core-ktx = { group = "androidx.test", name = "core-ktx", version.ref = "coreKtxVersion" }
 
+
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-
+google-services = { id = "com.google.gms.google-services", version.ref = "firebaseVersion"}
 

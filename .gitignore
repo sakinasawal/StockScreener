@@ -13,3 +13,7 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+echo "keystore.properties" >> .gitignore
+echo "*.jks" >> .gitignore
+
