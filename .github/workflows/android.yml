@@ -16,11 +16,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Step 2: Set up JDK 11 (required for Android)
-      - name: Set up JDK 11
+      # Step 2: Set up JDK 17 (required for Android)
+      - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
-          java-version: '11'
+          java-version: '17'
           distribution: 'temurin'
 
       # Step 3: Decode keystore from secret
@@ -62,8 +62,7 @@ jobs:
 
       # Step 6: Build & distribute using Fastlane
       - name: Run Fastlane
-        run: |
-          fastlane distributeFirebase
+        run: fastlane distributeFirebase
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
