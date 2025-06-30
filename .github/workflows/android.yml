@@ -26,7 +26,7 @@ jobs:
       # Step 3: Decode keystore from secret
       - name: Decode Keystore
         run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > app/my-release-key.jks
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > my-release-key.jks
 
       # Step 4: Set up Gradle cache
       - name: Cache Gradle
@@ -62,7 +62,7 @@ jobs:
 
       - name: Generate keystore.properties
         run: |
-          echo "storeFile=app/my-release-key.jks" > keystore.properties
+          echo "storeFile=my-release-key.jks" > keystore.properties
           echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" >> keystore.properties
           echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> keystore.properties
           echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> keystore.properties
@@ -75,4 +75,4 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-          FASTLANE_DONT_STORE_PASSWORD: 1
+          FASTLANE_DONT_STORE_PASSWORD: 0
