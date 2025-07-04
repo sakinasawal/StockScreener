@@ -56,15 +56,15 @@ The project follows the **MVVM (Model-View-ViewModel) architecture**, ensuring a
 - **Room Database** – For local data storage.
 - **StateFlow** – For state management in ViewModel.
 - **Coroutines** – For asynchronous operations.
+- **CI/CD Integration** - Automate push changes code and deployment to github and firebase app distribute
 
 ---
 
 ## 📌 Future Improvement Ideas
 
-- **Implement Pagination** – Optimize API calls to handle large datasets efficiently.
+- Migrate other API because AlphaVantage API often issue
 - **Add Unit Testing** – Increase test coverage for ViewModel and repository layers.
 - **Improve UI/UX** – Enhance UI screen with interactive charts.
-- **CI/CD Integration** – Automate testing and deployment using GitHub Actions.
 
 ---
 
