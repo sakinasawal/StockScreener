@@ -19,7 +19,16 @@ platform :android do
 
    desc "Upload release build to Firebase App Distribution"
    lane :distributeFirebase do
+       version_code = get_version_code(
+       gradle_file: "app/build.gradle.kts"
+       )
+       increment_version_code(
+       gradle_file: "app/build.gradle.kts",
+       version_code: version_code + 1
+       )
+
        buildAndroidAPK
+
        firebase_app_distribution(
        app: "1:553459087272:android:7d68d0cd04b55595578f9d",
        release_notes: "Release uploaded via Fastlane 🎉",

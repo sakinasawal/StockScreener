@@ -1,10 +1,11 @@
-name: Android CI
+name: Android CI/CD
 
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -45,21 +46,25 @@ jobs:
         with:
           ruby-version: '3.1'
 
+      # Step 6
       - name: Install Fastlane
         run: gem install fastlane
 
+      # Step 7
       - name: Check working directory
         run: |
           echo "Current directory is: $(pwd)"
           echo "Listing files:"
           ls -la
 
+      # Step 8
       - name: Show directory structure
         run: |
           pwd
           ls -la
           ls -la fastlane
 
+      # Step 9
       - name: Generate keystore.properties
         run: |
           echo "storeFile=my-release-key.jks" > keystore.properties
@@ -67,12 +72,73 @@ jobs:
           echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> keystore.properties
           echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> keystore.properties
 
-      # Step 6: Build & distribute using Fastlane
-      - name: Run Fastlane
-        run: fastlane distributeFirebase
+      - name: CI build only (no firebase)
+        run: fastlane buildAndroidAPK
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
           FASTLANE_DONT_STORE_PASSWORD: 0
+
+  deploy:
+      name: Deploy to Firebase (CD)
+      runs-on: ubuntu-latest
+      needs: build
+      if: github.event_name == 'workflow_dispatch'
+
+      steps:
+        # Step 1
+        - name: Checkout code
+          uses: actions/checkout@v3
+
+        # Step 2
+        - name: Set up JDK 17
+          uses: actions/setup-java@v3
+          with:
+            java-version: '17'
+            distribution: 'temurin'
+
+        # Step 3
+        - name: Decode Keystore
+          run: |
+            echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > my-release-key.jks
+
+        # Step 4
+        - name: Cache Gradle
+          uses: actions/cache@v3
+          with:
+            path: |
+              ~/.gradle/caches
+              ~/.gradle/wrapper
+            key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+            restore-keys: |
+              gradle-${{ runner.os }}
+
+        # Step 5
+        - name: Set up Ruby
+          uses: ruby/setup-ruby@v1
+          with:
+            ruby-version: '3.1'
+
+        # Step 6
+        - name: Install Fastlane
+          run: gem install fastlane
+
+        # Step 7
+        - name: Generate keystore.properties
+          run: |
+            echo "storeFile=my-release-key.jks" > keystore.properties
+            echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" >> keystore.properties
+            echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> keystore.properties
+            echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> keystore.properties 
+
+        # Step 8
+        - name: distribute to Firebase
+          run: fastlane distributeFirebase
+          env:
+            KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+            KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+            KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+            FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+            FASTLANE_DONT_STORE_PASSWORD: 0
