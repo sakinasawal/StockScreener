@@ -129,7 +129,7 @@ class Repository(
                 val apiData = response.body()
                 Log.d("API Raw Response", "Response body: $apiData")
 
-                if (apiData == null || apiData.symbol.isNullOrEmpty()) {
+                if (apiData == null || apiData.symbol.isEmpty()) {
                     Log.w("API Warning", "Empty response for $symbol")
                     return@withContext cacheData
                 }

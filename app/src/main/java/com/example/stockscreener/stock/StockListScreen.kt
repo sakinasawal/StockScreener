@@ -33,11 +33,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.stockscreener.R
-import com.example.stockscreener.TextLabel
-import com.example.stockscreener.*
+import com.example.stockscreener.util.TextLabel
 import com.example.stockscreener.data.Stock
 import com.example.stockscreener.ui.theme.AppTypography
 import com.example.stockscreener.ui.theme.*
+import com.example.stockscreener.util.InputTextField
+import com.example.stockscreener.util.spacing_16
+import com.example.stockscreener.util.spacing_20
+import com.example.stockscreener.util.spacing_4
+import com.example.stockscreener.util.spacing_8
 import com.example.stockscreener.viewmodel.StockViewModel
 
 @Composable

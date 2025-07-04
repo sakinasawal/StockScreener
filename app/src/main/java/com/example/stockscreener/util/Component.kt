@@ -1,4 +1,4 @@
-package com.example.stockscreener
+package com.example.stockscreener.util
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.fillMaxWidth

@@ -1,4 +1,4 @@
-package com.example.stockscreener
+package com.example.stockscreener.util
 
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp

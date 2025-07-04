@@ -1,5 +1,6 @@
 package com.example.stockscreener.network
 
+import com.example.stockscreener.util.ApiKeyProvider
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -9,13 +10,28 @@ import java.util.concurrent.TimeUnit
 
 object RetrofitInstance {
     private const val BASE_URL = "https://www.alphavantage.co/"
+    val API_KEY = ApiKeyProvider.getApiKey()
 
     private val client = OkHttpClient.Builder()
+
+        .addInterceptor{ chain ->
+            val original = chain.request()
+            val originalUrl = original.url
+
+            val url = originalUrl.newBuilder()
+                .addQueryParameter("apiKey", API_KEY)
+                .build()
+
+            val requestBuilder = original.newBuilder()
+                .url(url)
+                .build()
+
+            chain.proceed(requestBuilder)
+        }
+
         .addInterceptor(HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY
         })
-        .connectTimeout(30, TimeUnit.SECONDS) // Prevents connection from hanging
-        .readTimeout(30, TimeUnit.SECONDS)
         .build()
 
     val api: ApiService by lazy {

@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.ui.text.font.FontWeight
+import com.example.stockscreener.util.spacing_12
+import com.example.stockscreener.util.spacing_8
 
 @Composable
 fun NoNetworkBanner(isConnected: Boolean) {

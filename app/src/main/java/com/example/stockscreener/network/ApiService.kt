@@ -9,23 +9,21 @@ import retrofit2.http.Query
 
 interface ApiService {
 
-    @GET("query?function=LISTING_STATUS")
+    @GET("query")
     suspend fun getStockList(
-        @Query("apikey") apiKey: String = "1G09WZJPV7BJE5O3"
+        @Query("function") function: String = "LISTING_STATUS"
     ): Response<String>
 
     @GET("query")
     suspend fun getCompanyOverview(
         @Query("function") function: String = "OVERVIEW",
-        @Query("symbol") symbol: String,
-        @Query("apikey") apiKey: String = "1G09WZJPV7BJE5O3"
+        @Query("symbol") symbol: String
     ): Response<CompanyOverview>
 
     @GET("query")
     suspend fun getTimeSeriesMonthly(
         @Query("function") function: String = "TIME_SERIES_MONTHLY",
-        @Query("symbol") symbol: String,
-        @Query("apikey") apiKey: String = "1G09WZJPV7BJE5O3"
+        @Query("symbol") symbol: String
     ): Response<TimeSeriesResponse>
 
 }

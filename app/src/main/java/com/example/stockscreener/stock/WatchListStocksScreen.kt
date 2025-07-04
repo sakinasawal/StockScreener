@@ -19,8 +19,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavController
 import com.example.stockscreener.R
-import com.example.stockscreener.TextLabel
-import com.example.stockscreener.spacing_20
+import com.example.stockscreener.util.TextLabel
+import com.example.stockscreener.util.spacing_20
 import com.example.stockscreener.ui.theme.AppTypography
 
 @Composable
