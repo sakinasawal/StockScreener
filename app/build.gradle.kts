@@ -38,6 +38,13 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
+        // optional
+//        externalNativeBuild {
+//            cmake {
+//                cppFlags += ""
+//            }
+//        }
+
     }
 
     buildTypes {
